@@ -4,6 +4,10 @@ Prometheus自定义exporter，基于Go语言开发，可采集集群中所有Pod
 Core Feature:
 - 对所有命名空间下的Pod发起livenessProbe指针调用，返回调用耗时，当无法访问时，返回-1
 
+提供启动参数
+- web.listen-port 暴露的Http端口，默认80
+- web.telemetry-path 访问指标的路径，默认/metrics
+
 目前只暴露一个metric：**container_health_check_duration_millisecond**
 ```
 # HELP container_health_check_duration_millisecond The time(millisecond) taken to invoke the health check interface

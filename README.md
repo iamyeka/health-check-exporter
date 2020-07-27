@@ -10,5 +10,5 @@ container_health_check_duration_millisecond{container_name="",namespace="kube-sy
 
 通过kubectl工具快速部署体验
 ```shell script
-kubectl create deploy health-check-exporter --image=registry.cn-hangzhou.aliyuncs.com/clo/health-check-exporter:v1.0
+kubectl create deploy health-check-exporter --image=registry.cn-hangzhou.aliyuncs.com/clo/health-check-exporter:1.0
 ```

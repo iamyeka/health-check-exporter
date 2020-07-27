@@ -1,5 +1,8 @@
 # health-check-exporter
-Prometheus自定义exporter，基于Go语言开发，可搜集集群中所有Pod的健康检查耗时(单位毫秒)
+Prometheus自定义exporter，基于Go语言开发，可采集集群中所有Pod的健康检查耗时(单位：毫秒)
+
+Core Feature:
+- 对所有命名空间下的Pod发起livenessProbe指针调用，返回调用耗时，当无法访问时，返回-1
 
 目前只暴露一个metric：**container_health_check_duration_millisecond**
 ```

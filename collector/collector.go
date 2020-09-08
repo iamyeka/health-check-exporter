@@ -2,12 +2,15 @@ package collector
 
 import (
 	"context"
+	"flag"
 	"github.com/prometheus/client_golang/prometheus"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -24,9 +27,28 @@ func newGlobalMetric(metricName string, docString string, labels []string) *prom
 	return prometheus.NewDesc(metricName, docString, labels, nil)
 }
 
+func homeDir() string {
+	if h := os.Getenv("HOME"); h != "" {
+		return h
+	}
+	return os.Getenv("USERPROFILE") // windows
+}
+
 func NewMetrics() *Metrics {
 	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
+	//config, err := rest.InClusterConfig()
+
+	var kubeconfig *string
+	if home := homeDir(); home != "" {
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+	flag.Parse()
+
+	// use the current context in kubeconfig
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+
 	if err != nil {
 		panic(err.Error())
 	}
@@ -116,7 +138,9 @@ func healthCheck(pod *coreV1.Pod, c *Metrics, ch chan<- prometheus.Metric, waitG
 			defer resp.Body.Close()
 		}
 
-		ch <- prometheus.MustNewConstMetric(c.metrics["container_health_check_duration_millisecond"], prometheus.GaugeValue, float64(duration), meta.Namespace, containerName, podName)
+		metric := prometheus.MustNewConstMetric(c.metrics["container_health_check_duration_millisecond"], prometheus.GaugeValue, float64(duration), meta.Namespace, containerName, podName)
+
+		ch <- prometheus.NewMetricWithTimestamp(time.Now(), metric)
 
 	}
 
